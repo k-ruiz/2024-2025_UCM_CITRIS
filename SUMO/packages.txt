@@ -1,0 +1,3 @@
+pip install eclipe-sumo
+
+pip install traci (i think thats right if i remember it correctly) 
