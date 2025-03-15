@@ -11,12 +11,12 @@ class VTOL:
         self.id = id
         self.turnaround_time = turnaround_time
         self.available_at = datetime.now()
-        self.location = None  # Tracks which campus the VTOL is at
+        self.location = None  # tracks where the vtol is at
     
     def schedule_mission(self, start_time, duration, destination):
         adjusted_start_time = max(self.available_at, start_time)
         self.available_at = adjusted_start_time + duration + self.turnaround_time
-        self.location = destination  # Update VTOL location
+        self.location = destination  # updates the vtol destination
         return adjusted_start_time, self.available_at
 
 class Scheduler:
@@ -37,10 +37,14 @@ class Scheduler:
         print(f"Scheduled {mission_name} on VTOL {vtol.id} from {origin} to {destination}, from {actual_start_time} to {completion_time}")
     
     def handle_delays(self):
-        delay_types = {
+        delay_types = {     # list of possible reasons for time delays, along with their maximum/minimum time that they would take 
             "refueling": timedelta(minutes=random.randint(5, 15)),
-            "passenger_late": timedelta(minutes=random.randint(2, 10)),
-            "technical_issue": timedelta(minutes=random.randint(10, 30))
+            "passenger_late": timedelta(minutes=random.randint(2, 10)), 
+            "technical_issue": timedelta(minutes=random.randint(10, 30)),
+            "inspection_maintinence": timedelta(minutes=random.randint(15,30)),
+            "loading_unloading": timedelta(minutes=random.randint(5,10)),
+            "medical_necessity": timedelta(minutes=random.randint(15,30)),
+            "security_check": timedelta(minutes=random.randint(5,20))
         }
         delayed_events = []
         while self.event_queue:
@@ -53,14 +57,26 @@ class Scheduler:
         for event in delayed_events:
             heapq.heappush(self.event_queue, event)
 
-# Example Usage
+# callout code
 campuses = ["UC Davis", "UC Merced", "UC Santa Cruz", "UC Berkeley"]
-scheduler = Scheduler(num_vtols=4, campuses=campuses)
+scheduler = Scheduler(num_vtols=4, campuses=campuses) # this is assuming 4 vtols total
 
+# the missions are arbitrarily chosen, will need to figure out what the best routing will be. 
 scheduler.add_mission("Flight A", datetime.now() + timedelta(minutes=5), timedelta(minutes=20), "UC Davis", "UC Merced")
 scheduler.add_mission("Flight B", datetime.now() + timedelta(minutes=12), timedelta(minutes=15), "UC Merced", "UC Santa Cruz")
 scheduler.add_mission("Flight C", datetime.now() + timedelta(minutes=25), timedelta(minutes=25), "UC Santa Cruz", "UC Berkeley")
 scheduler.add_mission("Flight D", datetime.now() + timedelta(minutes=35), timedelta(minutes=30), "UC Berkeley", "UC Davis")
 
-# Simulate delays
+# simulate the delays
 scheduler.handle_delays()
+
+# # things that need to be done:
+# - would need to implement a weighting factor for how rnndom the possible delays are (how possible these things would happen)
+# - would need to make it possible so that multiple delays could happen, or none (none would be unlikely, but still possible)
+# - need to also need to take into account the actual time of the flight (need to look into the connecting this with the flight pathing + take off and landing)
+# - maybe take into account emergency landing locations? and if the vtol is unable to fly for any reason? 
+
+# things that should be considered: 
+# - what is the the time frame of flights? 24-hours? 10 hours of the day? 
+# - from where to where is the flights going? this is where graph theory would come in. 
+# - 
